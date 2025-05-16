@@ -8,10 +8,10 @@ import { userRoutes } from './routes/user';
 const app = Fastify();
 
 app.register(cors, {
-  origin: true,
+  origin: '*',
   credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 });
 
 app.register(jwt, {
@@ -25,7 +25,10 @@ app.get('/health', async () => {
   return { status: 'ok' };
 });
 
-app.listen({
-  port: 3100,
-  host: "0.0.0.0",
-}, () => console.log('Server is running on port 3100'));
+app.listen(
+  {
+    port: 3100,
+    host: '0.0.0.0',
+  },
+  () => console.log('Server is running on port 3100'),
+);
