@@ -2,10 +2,9 @@ import type { FastifyInstance } from "fastify";
 import { prisma } from "../prisma/prisma-client";
 
 export async function agendaRoutes(app: FastifyInstance) {
-	// Create new agenda item
 	app.post("/agenda", async (request, reply) => {
 		try {
-			const token = await request.jwtVerify();
+			const userId = await request.getCurrentUserId();
 			const { title, description, date } = request.body as {
 				title: string;
 				description?: string;
@@ -17,7 +16,7 @@ export async function agendaRoutes(app: FastifyInstance) {
 					title,
 					description,
 					date: new Date(date),
-					userId: token.id as string,
+					userId,
 				},
 			});
 
@@ -27,29 +26,25 @@ export async function agendaRoutes(app: FastifyInstance) {
 		}
 })
 
-// Get all agenda items for the authenticated user
-app.get("/agenda", async (request, reply) => {
-	try {
-		const token = await request.jwtVerify();
-		const agenda = await prisma.agenda.findMany({
-			where: {
-				userId: token.id as string,
-			},
-			orderBy: {
-				date: "asc",
-			},
-		});
-
-		return agenda;
-	} catch {
-		return reply.status(401).send({ error: "Unauthorized" });
-	}
-});
-
-// Update agenda item
-app.put("/agenda/:id", async (request, reply) => {
+	app.get("/agenda", async (request, reply) => {
 		try {
-			const token = await request.jwtVerify();
+			const userId = await request.getCurrentUserId();
+			const agenda = await prisma.agenda.findMany({
+				where: {userId},
+				orderBy: {
+					date: "asc",
+				},
+			});
+
+			return agenda;
+		} catch {
+			return reply.status(401).send({ error: "Unauthorized" });
+		}
+	});
+
+	app.put("/agenda/:id", async (request, reply) => {
+		try {
+			const userId = await request.getCurrentUserId();
 			const { id } = request.params as { id: string };
 			const { title, description, date } = request.body as {
 				title: string;
@@ -60,7 +55,7 @@ app.put("/agenda/:id", async (request, reply) => {
 			const agenda = await prisma.agenda.update({
 				where: {
 					id,
-					userId: token.id as string,
+					userId,
 				},
 				data: {
 					title,
@@ -75,16 +70,15 @@ app.put("/agenda/:id", async (request, reply) => {
 		}
 	})
 
-// Delete agenda item
-app.delete("/agenda/:id", async (request, reply) => {
-	try {
-		const token = await request.jwtVerify();
+	app.delete("/agenda/:id", async (request, reply) => {
+		try {
+			const userId = await request.getCurrentUserId();
 		const { id } = request.params as { id: string };
 
 		await prisma.agenda.delete({
 			where: {
 				id,
-				userId: token.id as string,
+				userId,
 			},
 		});
 

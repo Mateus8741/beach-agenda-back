@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-
-const prisma = new PrismaClient()
+import { prisma } from './prisma-client'
 
 async function main() {
   await prisma.agenda.deleteMany()
@@ -9,7 +7,6 @@ async function main() {
 
   const password = await bcrypt.hash('123456', 10)
 
-  // Create admin user
   const admin = await prisma.user.create({
     data: {
       name: 'Admin User',
@@ -18,7 +15,6 @@ async function main() {
     }
   })
 
-  // Create sample bookings
   const today = new Date()
   const tomorrow = new Date(today)
   tomorrow.setDate(tomorrow.getDate() + 1)

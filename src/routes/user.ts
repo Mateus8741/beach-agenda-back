@@ -4,7 +4,6 @@ import type { FastifyInstance } from "fastify";
 import { prisma } from "../prisma/prisma-client";
 
 export async function userRoutes(app: FastifyInstance) {
-	// Register new user
 	app.post("/users", async (request, reply) => {
 		const { name, email, password } = request.body as {
 			name: string;
@@ -28,7 +27,6 @@ export async function userRoutes(app: FastifyInstance) {
 }
 )
 
-// Login
 app.post("/users/login", async (request, reply) => {
 		const { email, password } = request.body as {
 			email: string;
@@ -54,12 +52,12 @@ const token = app.jwt.sign({ id: user.id });
 return { user, token };
 })
 
-// Get user profile
 app.get("/users/profile", async (request, reply) => {
 	try {
-		const token = await request.jwtVerify();
+		const userId = await request.getCurrentUserId();
+		
 		const user = await prisma.user.findUnique({
-			where: { id: token.id as string },
+			where: { id: userId },
 		});
 
 		if (!user) {
