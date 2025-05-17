@@ -33,7 +33,7 @@ __export(user_exports, {
   userRoutes: () => userRoutes
 });
 module.exports = __toCommonJS(user_exports);
-var import_bcrypt = __toESM(require("bcrypt"));
+var import_bcryptjs = __toESM(require("bcryptjs"));
 
 // src/prisma/prisma-client.ts
 var import_client = require("@prisma/client");
@@ -41,13 +41,37 @@ var prisma = new import_client.PrismaClient({
   log: ["query", "info", "warn", "error"]
 });
 
+// src/schemas/user.ts
+var import_zod = require("zod");
+var createUserSchema = import_zod.z.object({
+  name: import_zod.z.string().min(3),
+  email: import_zod.z.string().email(),
+  password: import_zod.z.string().min(6)
+});
+var loginSchema = import_zod.z.object({
+  email: import_zod.z.string().email(),
+  password: import_zod.z.string()
+});
+var updateUserSchema = import_zod.z.object({
+  name: import_zod.z.string().min(3).optional(),
+  email: import_zod.z.string().email().optional(),
+  password: import_zod.z.string().min(6).optional()
+});
+
 // src/routes/user.ts
 async function userRoutes(app) {
-  app.post(
+  app.withTypeProvider().post(
     "/users",
+    {
+      schema: {
+        body: createUserSchema,
+        summary: "Create a new user",
+        tags: ["Users"]
+      }
+    },
     async (request, reply) => {
       const { name, email, password } = request.body;
-      const hashedPassword = await import_bcrypt.default.hash(password, 10);
+      const hashedPassword = await import_bcryptjs.default.hash(password, 10);
       const user = await prisma.user.create({
         data: {
           name,
@@ -59,35 +83,54 @@ async function userRoutes(app) {
       return { user, token };
     }
   );
-  app.post("/users/login", async (request, reply) => {
-    const { email, password } = request.body;
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
-    if (!user) {
-      return reply.status(401).send({ error: "Invalid credentials" });
-    }
-    const validPassword = await import_bcrypt.default.compare(password, user.password);
-    if (!validPassword) {
-      return reply.status(401).send({ error: "Invalid credentials" });
-    }
-    const token = app.jwt.sign({ id: user.id });
-    return { user, token };
-  });
-  app.get("/users/profile", async (request, reply) => {
-    try {
-      const userId = await request.getCurrentUserId();
+  app.withTypeProvider().post(
+    "/users/login",
+    {
+      schema: {
+        body: loginSchema,
+        summary: "Authenticate user",
+        tags: ["Users"]
+      }
+    },
+    async (request, reply) => {
+      const { email, password } = request.body;
       const user = await prisma.user.findUnique({
-        where: { id: userId }
+        where: { email }
       });
       if (!user) {
-        return reply.status(404).send({ error: "User not found" });
+        return reply.status(401).send({ error: "Invalid credentials" });
       }
-      return user;
-    } catch {
-      return reply.status(401).send({ error: "Unauthorized" });
+      const validPassword = await import_bcryptjs.default.compare(password, user.password);
+      if (!validPassword) {
+        return reply.status(401).send({ error: "Invalid credentials" });
+      }
+      const token = app.jwt.sign({ id: user.id });
+      return { user, token };
     }
-  });
+  );
+  app.withTypeProvider().get(
+    "/users/profile",
+    {
+      schema: {
+        summary: "Get user profile",
+        tags: ["Users"]
+      }
+    },
+    async (request, reply) => {
+      try {
+        const userId = await request.getCurrentUserId();
+        const user = await prisma.user.findUnique({
+          where: { id: userId }
+        });
+        if (!user) {
+          return reply.status(404).send({ error: "User not found" });
+        }
+        return user;
+      } catch {
+        return reply.status(401).send({ error: "Unauthorized" });
+      }
+    }
+  );
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
