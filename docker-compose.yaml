@@ -1,9 +1,0 @@
-version: '3.8'
-services:
-  app:
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 512M 
