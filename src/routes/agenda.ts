@@ -1,18 +1,19 @@
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { z } from 'zod'
+
 import { prisma } from '../prisma/prisma-client'
+import {
+  agendaParamsSchema,
+  createAgendaSchema,
+  updateAgendaSchema,
+} from '../schemas/agenda'
 
 export async function agendaRoutes(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
     '/agenda',
     {
       schema: {
-        body: z.object({
-          title: z.string(),
-          description: z.string().optional(),
-          date: z.string(),
-        }),
+        body: createAgendaSchema,
         summary: 'Create a new agenda item',
         tags: ['Agenda'],
       },
@@ -20,11 +21,7 @@ export async function agendaRoutes(app: FastifyInstance) {
     async (request, reply) => {
       try {
         const userId = await request.getCurrentUserId()
-        const { title, description, date } = request.body as {
-          title: string
-          description?: string
-          date: string
-        }
+        const { title, description, date } = request.body
 
         const agenda = await prisma.agenda.create({
           data: {
@@ -42,65 +39,91 @@ export async function agendaRoutes(app: FastifyInstance) {
     }
   )
 
-  app.get('/agenda', async (request, reply) => {
-    try {
-      const userId = await request.getCurrentUserId()
-      const agenda = await prisma.agenda.findMany({
-        where: { userId },
-        orderBy: {
-          date: 'asc',
-        },
-      })
+  app.withTypeProvider<ZodTypeProvider>().get(
+    '/agenda',
+    {
+      schema: {
+        summary: 'List all agenda items',
+        tags: ['Agenda'],
+      },
+    },
+    async (request, reply) => {
+      try {
+        const userId = await request.getCurrentUserId()
+        const agenda = await prisma.agenda.findMany({
+          where: { userId },
+          orderBy: {
+            date: 'asc',
+          },
+        })
 
-      return agenda
-    } catch {
-      return reply.status(401).send({ error: 'Unauthorized' })
-    }
-  })
-
-  app.put('/agenda/:id', async (request, reply) => {
-    try {
-      const userId = await request.getCurrentUserId()
-      const { id } = request.params as { id: string }
-      const { title, description, date } = request.body as {
-        title: string
-        description?: string
-        date: string
+        return agenda
+      } catch {
+        return reply.status(401).send({ error: 'Unauthorized' })
       }
-
-      const agenda = await prisma.agenda.update({
-        where: {
-          id,
-          userId,
-        },
-        data: {
-          title,
-          description,
-          date: new Date(date),
-        },
-      })
-
-      return agenda
-    } catch {
-      return reply.status(401).send({ error: 'Unauthorized' })
     }
-  })
+  )
 
-  app.delete('/agenda/:id', async (request, reply) => {
-    try {
-      const userId = await request.getCurrentUserId()
-      const { id } = request.params as { id: string }
+  app.withTypeProvider<ZodTypeProvider>().put(
+    '/agenda/:id',
+    {
+      schema: {
+        params: agendaParamsSchema,
+        body: updateAgendaSchema,
+        summary: 'Update an agenda item',
+        tags: ['Agenda'],
+      },
+    },
+    async (request, reply) => {
+      try {
+        const userId = await request.getCurrentUserId()
+        const { id } = request.params
+        const { title, description, date } = request.body
 
-      await prisma.agenda.delete({
-        where: {
-          id,
-          userId,
-        },
-      })
+        const agenda = await prisma.agenda.update({
+          where: {
+            id,
+            userId,
+          },
+          data: {
+            title,
+            description,
+            date: date ? new Date(date) : undefined,
+          },
+        })
 
-      return { message: 'Agenda item deleted successfully' }
-    } catch {
-      return reply.status(401).send({ error: 'Unauthorized' })
+        return agenda
+      } catch {
+        return reply.status(401).send({ error: 'Unauthorized' })
+      }
     }
-  })
+  )
+
+  app.withTypeProvider<ZodTypeProvider>().delete(
+    '/agenda/:id',
+    {
+      schema: {
+        params: agendaParamsSchema,
+        summary: 'Delete an agenda item',
+        tags: ['Agenda'],
+      },
+    },
+    async (request, reply) => {
+      try {
+        const userId = await request.getCurrentUserId()
+        const { id } = request.params
+
+        await prisma.agenda.delete({
+          where: {
+            id,
+            userId,
+          },
+        })
+
+        return { message: 'Agenda item deleted successfully' }
+      } catch {
+        return reply.status(401).send({ error: 'Unauthorized' })
+      }
+    }
+  )
 }
