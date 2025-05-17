@@ -12,7 +12,7 @@ async function main() {
       name: 'Admin User',
       email: 'admin@beachagenda.com',
       password,
-    }
+    },
   })
 
   const today = new Date()
@@ -25,7 +25,7 @@ async function main() {
       description: 'Reserva de quadra para Beach Tennis',
       date: today,
       userId: admin.id,
-    }
+    },
   })
 
   await prisma.agenda.create({
@@ -34,7 +34,7 @@ async function main() {
       description: 'Reserva de quadra para Beach Volleyball',
       date: tomorrow,
       userId: admin.id,
-    }
+    },
   })
 
   await prisma.agenda.create({
@@ -43,17 +43,17 @@ async function main() {
       description: 'Reserva de quadra para Futevôlei',
       date: today,
       userId: admin.id,
-    }
+    },
   })
 
   console.log('Seed completed successfully!')
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error(e)
     process.exit(1)
   })
   .finally(async () => {
     await prisma.$disconnect()
-  }) 
+  })
