@@ -70,8 +70,8 @@ export async function agendaRoutes(app: FastifyInstance) {
         })
 
         return agenda
-      } catch {
-        return reply.status(401).send({ error: 'Unauthorized' })
+      } catch (error) {
+        return reply.status(401).send({ error: (error as Error).message })
       }
     }
   )
