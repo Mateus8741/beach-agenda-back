@@ -21,14 +21,23 @@ export async function agendaRoutes(app: FastifyInstance) {
     async (request, reply) => {
       try {
         const userId = await request.getCurrentUserId()
-        const { title, description, date } = request.body
+        const { title, description, date, timeSlots } = request.body
 
         const agenda = await prisma.agenda.create({
           data: {
             title,
             description,
             date: new Date(date),
+            timeSlots: {
+              create: timeSlots.map(slot => ({
+                time: slot.time,
+                isAvailable: slot.isAvailable,
+              })),
+            },
             userId,
+          },
+          include: {
+            timeSlots: true,
           },
         })
 
@@ -52,6 +61,9 @@ export async function agendaRoutes(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const agenda = await prisma.agenda.findMany({
           where: { userId },
+          include: {
+            timeSlots: true,
+          },
           orderBy: {
             date: 'asc',
           },
@@ -78,7 +90,16 @@ export async function agendaRoutes(app: FastifyInstance) {
       try {
         const userId = await request.getCurrentUserId()
         const { id } = request.params
-        const { title, description, date } = request.body
+        const { title, description, date, timeSlots } = request.body
+
+        // Primeiro, deleta os horários existentes
+        if (timeSlots) {
+          await prisma.timeSlot.deleteMany({
+            where: {
+              agendaId: id,
+            },
+          })
+        }
 
         const agenda = await prisma.agenda.update({
           where: {
@@ -89,6 +110,17 @@ export async function agendaRoutes(app: FastifyInstance) {
             title,
             description,
             date: date ? new Date(date) : undefined,
+            timeSlots: timeSlots
+              ? {
+                  create: timeSlots.map(slot => ({
+                    time: slot.time,
+                    isAvailable: slot.isAvailable,
+                  })),
+                }
+              : undefined,
+          },
+          include: {
+            timeSlots: true,
           },
         })
 

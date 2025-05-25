@@ -27,18 +27,19 @@ __export(agenda_exports, {
 module.exports = __toCommonJS(agenda_exports);
 var import_zod = require("zod");
 var createAgendaSchema = import_zod.z.object({
-  title: import_zod.z.string().min(3),
-  description: import_zod.z.string().optional(),
-  date: import_zod.z.string().datetime(),
+  title: import_zod.z.string(),
+  description: import_zod.z.string(),
+  date: import_zod.z.string(),
+  timeSlots: import_zod.z.array(
+    import_zod.z.object({
+      time: import_zod.z.string(),
+      isAvailable: import_zod.z.boolean()
+    })
+  ),
   location: import_zod.z.string(),
   userId: import_zod.z.string().uuid()
 });
-var updateAgendaSchema = import_zod.z.object({
-  title: import_zod.z.string().min(3).optional(),
-  description: import_zod.z.string().optional(),
-  date: import_zod.z.string().datetime().optional(),
-  location: import_zod.z.string().optional()
-});
+var updateAgendaSchema = createAgendaSchema.partial();
 var agendaParamsSchema = import_zod.z.object({
   id: import_zod.z.string().uuid()
 });

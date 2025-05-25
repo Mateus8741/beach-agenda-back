@@ -33,18 +33,19 @@ var prisma = new import_client.PrismaClient({
 // src/schemas/agenda.ts
 var import_zod = require("zod");
 var createAgendaSchema = import_zod.z.object({
-  title: import_zod.z.string().min(3),
-  description: import_zod.z.string().optional(),
-  date: import_zod.z.string().datetime(),
+  title: import_zod.z.string(),
+  description: import_zod.z.string(),
+  date: import_zod.z.string(),
+  timeSlots: import_zod.z.array(
+    import_zod.z.object({
+      time: import_zod.z.string(),
+      isAvailable: import_zod.z.boolean()
+    })
+  ),
   location: import_zod.z.string(),
   userId: import_zod.z.string().uuid()
 });
-var updateAgendaSchema = import_zod.z.object({
-  title: import_zod.z.string().min(3).optional(),
-  description: import_zod.z.string().optional(),
-  date: import_zod.z.string().datetime().optional(),
-  location: import_zod.z.string().optional()
-});
+var updateAgendaSchema = createAgendaSchema.partial();
 var agendaParamsSchema = import_zod.z.object({
   id: import_zod.z.string().uuid()
 });
@@ -63,13 +64,22 @@ async function agendaRoutes(app) {
     async (request, reply) => {
       try {
         const userId = await request.getCurrentUserId();
-        const { title, description, date } = request.body;
+        const { title, description, date, timeSlots } = request.body;
         const agenda = await prisma.agenda.create({
           data: {
             title,
             description,
             date: new Date(date),
+            timeSlots: {
+              create: timeSlots.map((slot) => ({
+                time: slot.time,
+                isAvailable: slot.isAvailable
+              }))
+            },
             userId
+          },
+          include: {
+            timeSlots: true
           }
         });
         return agenda;
@@ -91,6 +101,9 @@ async function agendaRoutes(app) {
         const userId = await request.getCurrentUserId();
         const agenda = await prisma.agenda.findMany({
           where: { userId },
+          include: {
+            timeSlots: true
+          },
           orderBy: {
             date: "asc"
           }
@@ -115,7 +128,14 @@ async function agendaRoutes(app) {
       try {
         const userId = await request.getCurrentUserId();
         const { id } = request.params;
-        const { title, description, date } = request.body;
+        const { title, description, date, timeSlots } = request.body;
+        if (timeSlots) {
+          await prisma.timeSlot.deleteMany({
+            where: {
+              agendaId: id
+            }
+          });
+        }
         const agenda = await prisma.agenda.update({
           where: {
             id,
@@ -124,7 +144,16 @@ async function agendaRoutes(app) {
           data: {
             title,
             description,
-            date: date ? new Date(date) : void 0
+            date: date ? new Date(date) : void 0,
+            timeSlots: timeSlots ? {
+              create: timeSlots.map((slot) => ({
+                time: slot.time,
+                isAvailable: slot.isAvailable
+              }))
+            } : void 0
+          },
+          include: {
+            timeSlots: true
           }
         });
         return agenda;
