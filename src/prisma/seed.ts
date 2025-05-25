@@ -25,6 +25,23 @@ async function main() {
       description: 'Reserva de quadra para Beach Tennis',
       date: today,
       userId: admin.id,
+      timeSlots: {
+        create: [
+          { time: '10:00', isAvailable: true },
+          { time: '11:00', isAvailable: true },
+          { time: '12:00', isAvailable: true },
+          { time: '13:00', isAvailable: true },
+          { time: '14:00', isAvailable: true },
+          { time: '15:00', isAvailable: true },
+          { time: '16:00', isAvailable: true },
+          { time: '17:00', isAvailable: true },
+          { time: '18:00', isAvailable: true },
+          { time: '19:00', isAvailable: true },
+          { time: '20:00', isAvailable: true },
+          { time: '21:00', isAvailable: true },
+          { time: '22:00', isAvailable: true },
+        ],
+      },
     },
   })
 
@@ -34,6 +51,23 @@ async function main() {
       description: 'Reserva de quadra para Beach Volleyball',
       date: tomorrow,
       userId: admin.id,
+      timeSlots: {
+        create: [
+          { time: '10:00', isAvailable: true },
+          { time: '11:00', isAvailable: true },
+          { time: '12:00', isAvailable: true },
+          { time: '13:00', isAvailable: true },
+          { time: '14:00', isAvailable: true },
+          { time: '15:00', isAvailable: true },
+          { time: '16:00', isAvailable: true },
+          { time: '17:00', isAvailable: true },
+          { time: '18:00', isAvailable: true },
+          { time: '19:00', isAvailable: true },
+          { time: '20:00', isAvailable: true },
+          { time: '21:00', isAvailable: true },
+          { time: '22:00', isAvailable: true },
+        ],
+      },
     },
   })
 
@@ -43,6 +77,23 @@ async function main() {
       description: 'Reserva de quadra para Futevôlei',
       date: today,
       userId: admin.id,
+      timeSlots: {
+        create: [
+          { time: '10:00', isAvailable: true },
+          { time: '11:00', isAvailable: true },
+          { time: '12:00', isAvailable: true },
+          { time: '13:00', isAvailable: true },
+          { time: '14:00', isAvailable: true },
+          { time: '15:00', isAvailable: true },
+          { time: '16:00', isAvailable: true },
+          { time: '17:00', isAvailable: true },
+          { time: '18:00', isAvailable: true },
+          { time: '19:00', isAvailable: true },
+          { time: '20:00', isAvailable: true },
+          { time: '21:00', isAvailable: true },
+          { time: '22:00', isAvailable: true },
+        ],
+      },
     },
   })
 
