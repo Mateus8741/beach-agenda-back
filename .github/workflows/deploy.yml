@@ -1,45 +1,13 @@
-# name: Deploy to Coolify
-
-# on:
-#   push:
-#     branches: [ develop ]
-#   workflow_dispatch:
-
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: '18'
-#           cache: 'npm'
-
-#       - name: Install dependencies
-#         run: npm install
-
-#       - name: Build
-#         run: npm run build
-
-#       - name: Deploy to Coolify
-#         run: |
-#           curl -X POST \
-#             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN_GITHUB }}" \
-#             https://coolify.codewaveds.com.br/webhooks/source/github/events/manual 
-
 name: Deploy to Coolify
 
 on:
   push:
     branches:
-      - develop
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -53,7 +21,9 @@ jobs:
         run: npm install
 
       - name: Build the application
-        run: npm run build
+        run: |
+          npm run build
+          ls -la dist/
 
       - name: Deploy to Coolify
         env:
