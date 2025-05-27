@@ -116,8 +116,8 @@ async function agendaRoutes(app2) {
           }
         });
         return agenda;
-      } catch {
-        return reply.status(401).send({ error: "Unauthorized" });
+      } catch (error) {
+        return reply.status(401).send({ error: error.message });
       }
     }
   );

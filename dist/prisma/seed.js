@@ -51,7 +51,24 @@ async function main() {
       title: "Beach Tennis - Quadra 1",
       description: "Reserva de quadra para Beach Tennis",
       date: today,
-      userId: admin.id
+      userId: admin.id,
+      timeSlots: {
+        create: [
+          { time: "10:00", isAvailable: true },
+          { time: "11:00", isAvailable: true },
+          { time: "12:00", isAvailable: true },
+          { time: "13:00", isAvailable: true },
+          { time: "14:00", isAvailable: true },
+          { time: "15:00", isAvailable: true },
+          { time: "16:00", isAvailable: true },
+          { time: "17:00", isAvailable: true },
+          { time: "18:00", isAvailable: true },
+          { time: "19:00", isAvailable: true },
+          { time: "20:00", isAvailable: true },
+          { time: "21:00", isAvailable: true },
+          { time: "22:00", isAvailable: true }
+        ]
+      }
     }
   });
   await prisma.agenda.create({
@@ -59,7 +76,24 @@ async function main() {
       title: "Beach Volleyball - Quadra 3",
       description: "Reserva de quadra para Beach Volleyball",
       date: tomorrow,
-      userId: admin.id
+      userId: admin.id,
+      timeSlots: {
+        create: [
+          { time: "10:00", isAvailable: true },
+          { time: "11:00", isAvailable: true },
+          { time: "12:00", isAvailable: true },
+          { time: "13:00", isAvailable: true },
+          { time: "14:00", isAvailable: true },
+          { time: "15:00", isAvailable: true },
+          { time: "16:00", isAvailable: true },
+          { time: "17:00", isAvailable: true },
+          { time: "18:00", isAvailable: true },
+          { time: "19:00", isAvailable: true },
+          { time: "20:00", isAvailable: true },
+          { time: "21:00", isAvailable: true },
+          { time: "22:00", isAvailable: true }
+        ]
+      }
     }
   });
   await prisma.agenda.create({
@@ -67,7 +101,24 @@ async function main() {
       title: "Futev\xF4lei - Quadra 2",
       description: "Reserva de quadra para Futev\xF4lei",
       date: today,
-      userId: admin.id
+      userId: admin.id,
+      timeSlots: {
+        create: [
+          { time: "10:00", isAvailable: true },
+          { time: "11:00", isAvailable: true },
+          { time: "12:00", isAvailable: true },
+          { time: "13:00", isAvailable: true },
+          { time: "14:00", isAvailable: true },
+          { time: "15:00", isAvailable: true },
+          { time: "16:00", isAvailable: true },
+          { time: "17:00", isAvailable: true },
+          { time: "18:00", isAvailable: true },
+          { time: "19:00", isAvailable: true },
+          { time: "20:00", isAvailable: true },
+          { time: "21:00", isAvailable: true },
+          { time: "22:00", isAvailable: true }
+        ]
+      }
     }
   });
   console.log("Seed completed successfully!");
