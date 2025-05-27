@@ -33,7 +33,9 @@ var prisma = new import_client.PrismaClient({
 
 // src/prisma/seed.ts
 async function main() {
+  await prisma.timeSlot.deleteMany();
   await prisma.agenda.deleteMany();
+  await prisma.arena.deleteMany();
   await prisma.user.deleteMany();
   const password = await import_bcryptjs.default.hash("123456", 10);
   const admin = await prisma.user.create({
@@ -41,6 +43,20 @@ async function main() {
       name: "Admin User",
       email: "admin@beachagenda.com",
       password
+    }
+  });
+  const copacabana = await prisma.arena.create({
+    data: {
+      name: "Copacabana Arena Complex",
+      location: "Copacabana Beach",
+      tags: ["Beach Tennis", "Volleyball"]
+    }
+  });
+  const ipanema = await prisma.arena.create({
+    data: {
+      name: "Ipanema Sports Center",
+      location: "Ipanema Beach",
+      tags: ["Footvolley", "Volleyball"]
     }
   });
   const today = /* @__PURE__ */ new Date();
@@ -52,21 +68,13 @@ async function main() {
       description: "Reserva de quadra para Beach Tennis",
       date: today,
       userId: admin.id,
+      arenaId: copacabana.id,
+      tags: ["Beach Tennis"],
       timeSlots: {
         create: [
           { time: "10:00", isAvailable: true },
           { time: "11:00", isAvailable: true },
-          { time: "12:00", isAvailable: true },
-          { time: "13:00", isAvailable: true },
-          { time: "14:00", isAvailable: true },
-          { time: "15:00", isAvailable: true },
-          { time: "16:00", isAvailable: true },
-          { time: "17:00", isAvailable: true },
-          { time: "18:00", isAvailable: true },
-          { time: "19:00", isAvailable: true },
-          { time: "20:00", isAvailable: true },
-          { time: "21:00", isAvailable: true },
-          { time: "22:00", isAvailable: true }
+          { time: "12:00", isAvailable: false }
         ]
       }
     }
@@ -77,21 +85,13 @@ async function main() {
       description: "Reserva de quadra para Beach Volleyball",
       date: tomorrow,
       userId: admin.id,
+      arenaId: copacabana.id,
+      tags: ["Volleyball"],
       timeSlots: {
         create: [
-          { time: "10:00", isAvailable: true },
-          { time: "11:00", isAvailable: true },
-          { time: "12:00", isAvailable: true },
           { time: "13:00", isAvailable: true },
-          { time: "14:00", isAvailable: true },
-          { time: "15:00", isAvailable: true },
-          { time: "16:00", isAvailable: true },
-          { time: "17:00", isAvailable: true },
-          { time: "18:00", isAvailable: true },
-          { time: "19:00", isAvailable: true },
-          { time: "20:00", isAvailable: true },
-          { time: "21:00", isAvailable: true },
-          { time: "22:00", isAvailable: true }
+          { time: "14:00", isAvailable: false },
+          { time: "15:00", isAvailable: true }
         ]
       }
     }
@@ -102,21 +102,14 @@ async function main() {
       description: "Reserva de quadra para Futev\xF4lei",
       date: today,
       userId: admin.id,
+      arenaId: ipanema.id,
+      tags: ["Footvolley"],
       timeSlots: {
         create: [
-          { time: "10:00", isAvailable: true },
-          { time: "11:00", isAvailable: true },
-          { time: "12:00", isAvailable: true },
-          { time: "13:00", isAvailable: true },
-          { time: "14:00", isAvailable: true },
-          { time: "15:00", isAvailable: true },
+          { time: "15:00", isAvailable: false },
           { time: "16:00", isAvailable: true },
           { time: "17:00", isAvailable: true },
-          { time: "18:00", isAvailable: true },
-          { time: "19:00", isAvailable: true },
-          { time: "20:00", isAvailable: true },
-          { time: "21:00", isAvailable: true },
-          { time: "22:00", isAvailable: true }
+          { time: "18:00", isAvailable: true }
         ]
       }
     }
