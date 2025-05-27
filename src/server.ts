@@ -10,6 +10,7 @@ import {
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
+import { auth } from './middleware/verify-jwt'
 import { agendaRoutes } from './routes/agenda'
 import { userRoutes } from './routes/user'
 
@@ -48,6 +49,7 @@ app.register(fastifySwaggerUi, {
 
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
+app.register(auth)
 
 app.register(userRoutes)
 app.register(agendaRoutes)
