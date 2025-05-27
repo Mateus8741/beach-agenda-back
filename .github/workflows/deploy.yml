@@ -1,0 +1,35 @@
+name: Deploy to Coolify
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the application
+        run: |
+          npm run build
+          ls -la dist/
+
+      - name: Deploy to Coolify
+        env:
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_TOKEN_GITHUB }}
+        run: |
+          curl -X POST "https://coolify.codewaveds.com.br/api/deploy" \
+          -H "Authorization: Bearer $COOLIFY_API_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{ "project": "i00k8swwgcwgogs4w80sg088" }'

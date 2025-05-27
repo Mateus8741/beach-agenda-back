@@ -1,31 +1,67 @@
-import cors from '@fastify/cors';
-import jwt from '@fastify/jwt';
-import Fastify from 'fastify';
+import cors from '@fastify/cors'
+import jwt from '@fastify/jwt'
+import Fastify from 'fastify'
 
-import { agendaRoutes } from './routes/agenda';
-import { userRoutes } from './routes/user';
+import fastifyCookie from '@fastify/cookie'
+import fastifySwagger from '@fastify/swagger'
+import fastifySwaggerUi from '@fastify/swagger-ui'
+import {
+  jsonSchemaTransform,
+  serializerCompiler,
+  validatorCompiler,
+} from 'fastify-type-provider-zod'
+import { auth } from './middleware/verify-jwt'
+import { agendaRoutes } from './routes/agenda'
+import { userRoutes } from './routes/user'
 
-const app = Fastify();
+const app = Fastify().withTypeProvider()
+
+app.register(fastifyCookie)
+app.register(jwt, {
+  secret:
+    process.env.JWT_SECRET ??
+    'your-super-secret-jwt-key-change-this-in-production',
+})
 
 app.register(cors, {
-  origin: true,
+  origin: '*',
   credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-});
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+})
 
-app.register(jwt, {
-  secret: process.env.JWT_SECRET ?? 'your-super-secret-jwt-key-change-this-in-production',
-});
+app.register(fastifySwagger, {
+  swagger: {
+    consumes: ['application/json'],
+    produces: ['application/json'],
+    info: {
+      title: 'Beach Agenda API',
+      description: 'API para gerenciamento de agendamentos de arenas',
+      version: '1.0.0',
+    },
+  },
+  transform: jsonSchemaTransform,
+})
 
-app.register(userRoutes);
-app.register(agendaRoutes);
+app.register(fastifySwaggerUi, {
+  routePrefix: '/docs',
+})
+
+app.setValidatorCompiler(validatorCompiler)
+app.setSerializerCompiler(serializerCompiler)
+app.register(auth)
+
+app.register(userRoutes)
+app.register(agendaRoutes)
 
 app.get('/health', async () => {
-  return { status: 'ok' };
-});
+  return { status: 'ok' }
+})
 
-app.listen({
-  port: 3100,
-  host: "0.0.0.0",
-}, () => console.log('Server is running on port 3100'));
+app.listen(
+  {
+    port: 3100,
+    host: '0.0.0.0',
+  },
+  () => console.log('Server is running on port 3100')
+)
