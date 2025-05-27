@@ -17,6 +17,14 @@ model User {
     updatedAt DateTime @updatedAt
 }
 
+model Arena {
+    id        String   @id @default(uuid())
+    name      String
+    location  String
+    agendas   Agenda[]
+    tags      String[]
+}
+
 model Agenda {
     id          String     @id @default(uuid())
     title       String
@@ -24,9 +32,12 @@ model Agenda {
     date        DateTime
     timeSlots   TimeSlot[]
     userId      String
+    arenaId     String
     createdAt   DateTime   @default(now())
     updatedAt   DateTime   @updatedAt
     User        User       @relation(fields: [userId], references: [id])
+    arena       Arena      @relation(fields: [arenaId], references: [id])
+    tags        String[]
 }
 
 model TimeSlot {

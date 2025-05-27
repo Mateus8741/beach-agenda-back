@@ -24,7 +24,7 @@
     "@fastify/jwt": "^9.1.0",
     "@fastify/swagger": "^9.5.0",
     "@fastify/swagger-ui": "^5.2.2",
-    "@prisma/client": "^6.7.0",
+    "@prisma/client": "^6.8.2",
     "bcryptjs": "^3.0.2",
     "fastify": "^5.3.3",
     "fastify-plugin": "5.0.1",
@@ -39,7 +39,7 @@
     "@types/node": "^22.15.18",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
-    "prisma": "^6.7.0",
+    "prisma": "^6.8.2",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }
