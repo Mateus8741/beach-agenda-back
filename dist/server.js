@@ -31,6 +31,21 @@ var import_swagger = __toESM(require("@fastify/swagger"));
 var import_swagger_ui = __toESM(require("@fastify/swagger-ui"));
 var import_fastify_type_provider_zod = require("fastify-type-provider-zod");
 
+// src/middleware/verify-jwt.ts
+var import_fastify_plugin = __toESM(require("fastify-plugin"));
+var auth = (0, import_fastify_plugin.default)(async (app2) => {
+  app2.addHook("preHandler", async (request) => {
+    request.getCurrentUserId = async () => {
+      try {
+        const { sub } = await request.jwtVerify();
+        return sub;
+      } catch {
+        throw new Error("Unauthorized");
+      }
+    };
+  });
+});
+
 // src/prisma/prisma-client.ts
 var import_client = require("@prisma/client");
 var prisma = new import_client.PrismaClient({
@@ -320,6 +335,7 @@ app.register(import_swagger_ui.default, {
 });
 app.setValidatorCompiler(import_fastify_type_provider_zod.validatorCompiler);
 app.setSerializerCompiler(import_fastify_type_provider_zod.serializerCompiler);
+app.register(auth);
 app.register(userRoutes);
 app.register(agendaRoutes);
 app.get("/health", async () => {
