@@ -211,24 +211,73 @@ async function agendaRoutes(app2) {
   );
 }
 
+// src/routes/arena.ts
+var import_zod2 = require("zod");
+async function arenaRoutes(app2) {
+  app2.get("/arenas", async (request, reply) => {
+    const arenas = await prisma.arena.findMany();
+    return arenas;
+  });
+  app2.get("/arenas/:id", async (request, reply) => {
+    const { id } = request.params;
+    const arena = await prisma.arena.findUnique({
+      where: { id },
+      include: { agendas: true }
+    });
+    if (!arena) return reply.status(404).send({ error: "Arena not found" });
+    return arena;
+  });
+  app2.post("/arenas", async (request, reply) => {
+    const bodySchema = import_zod2.z.object({
+      name: import_zod2.z.string(),
+      location: import_zod2.z.string(),
+      tags: import_zod2.z.array(import_zod2.z.string()).optional()
+    });
+    const { name, location, tags } = bodySchema.parse(request.body);
+    const arena = await prisma.arena.create({
+      data: { name, location, tags: tags ?? [] }
+    });
+    return arena;
+  });
+  app2.put("/arenas/:id", async (request, reply) => {
+    const { id } = request.params;
+    const bodySchema = import_zod2.z.object({
+      name: import_zod2.z.string().optional(),
+      location: import_zod2.z.string().optional(),
+      tags: import_zod2.z.array(import_zod2.z.string()).optional()
+    });
+    const data = bodySchema.parse(request.body);
+    const arena = await prisma.arena.update({
+      where: { id },
+      data
+    });
+    return arena;
+  });
+  app2.delete("/arenas/:id", async (request, reply) => {
+    const { id } = request.params;
+    await prisma.arena.delete({ where: { id } });
+    return { message: "Arena deleted" };
+  });
+}
+
 // src/routes/user.ts
 var import_bcryptjs = __toESM(require("bcryptjs"));
 
 // src/schemas/user.ts
-var import_zod2 = require("zod");
-var createUserSchema = import_zod2.z.object({
-  name: import_zod2.z.string().min(3),
-  email: import_zod2.z.string().email(),
-  password: import_zod2.z.string().min(6)
+var import_zod3 = require("zod");
+var createUserSchema = import_zod3.z.object({
+  name: import_zod3.z.string().min(3),
+  email: import_zod3.z.string().email(),
+  password: import_zod3.z.string().min(6)
 });
-var loginSchema = import_zod2.z.object({
-  email: import_zod2.z.string().email(),
-  password: import_zod2.z.string()
+var loginSchema = import_zod3.z.object({
+  email: import_zod3.z.string().email(),
+  password: import_zod3.z.string()
 });
-var updateUserSchema = import_zod2.z.object({
-  name: import_zod2.z.string().min(3).optional(),
-  email: import_zod2.z.string().email().optional(),
-  password: import_zod2.z.string().min(6).optional()
+var updateUserSchema = import_zod3.z.object({
+  name: import_zod3.z.string().min(3).optional(),
+  email: import_zod3.z.string().email().optional(),
+  password: import_zod3.z.string().min(6).optional()
 });
 
 // src/routes/user.ts
@@ -338,6 +387,7 @@ app.setSerializerCompiler(import_fastify_type_provider_zod.serializerCompiler);
 app.register(auth);
 app.register(userRoutes);
 app.register(agendaRoutes);
+app.register(arenaRoutes);
 app.get("/health", async () => {
   return { status: "ok" };
 });
