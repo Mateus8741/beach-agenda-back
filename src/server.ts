@@ -13,6 +13,7 @@ import {
 import { auth } from "./middleware/verify-jwt";
 import { agendaRoutes } from "./routes/agenda";
 import { arenaRoutes } from "./routes/arena";
+import { bookingRoutes } from "./routes/booking";
 import { userRoutes } from "./routes/user";
 
 const app = Fastify().withTypeProvider();
@@ -54,8 +55,8 @@ app.register(auth);
 
 app.register(userRoutes);
 app.register(agendaRoutes);
-
 app.register(arenaRoutes);
+app.register(bookingRoutes);
 
 app.get("/health", async () => {
 	return { status: "ok" };

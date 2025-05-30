@@ -13,6 +13,7 @@ model User {
     name      String
     password  String
     agendas   Agenda[]
+    bookings  Booking[]
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
@@ -38,6 +39,7 @@ model Agenda {
     User        User       @relation(fields: [userId], references: [id])
     arena       Arena      @relation(fields: [arenaId], references: [id])
     tags        String[]
+    bookings    Booking[]
 }
 
 model TimeSlot {
@@ -48,4 +50,14 @@ model TimeSlot {
     agendaId    String
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
+}
+
+model Booking {
+    id        String   @id @default(uuid())
+    userId    String
+    agendaId  String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    User      User     @relation(fields: [userId], references: [id])
+    Agenda    Agenda   @relation(fields: [agendaId], references: [id])
 }
