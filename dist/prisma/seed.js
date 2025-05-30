@@ -34,6 +34,7 @@ var prisma = new import_client.PrismaClient({
 // src/prisma/seed.ts
 async function main() {
   await prisma.timeSlot.deleteMany();
+  await prisma.booking.deleteMany();
   await prisma.agenda.deleteMany();
   await prisma.arena.deleteMany();
   await prisma.user.deleteMany();
@@ -62,7 +63,7 @@ async function main() {
   const today = /* @__PURE__ */ new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  await prisma.agenda.create({
+  const beachTennisAgenda = await prisma.agenda.create({
     data: {
       title: "Beach Tennis - Quadra 1",
       description: "Reserva de quadra para Beach Tennis",
@@ -79,7 +80,7 @@ async function main() {
       }
     }
   });
-  await prisma.agenda.create({
+  const volleyballAgenda = await prisma.agenda.create({
     data: {
       title: "Beach Volleyball - Quadra 3",
       description: "Reserva de quadra para Beach Volleyball",
@@ -96,7 +97,7 @@ async function main() {
       }
     }
   });
-  await prisma.agenda.create({
+  const footvolleyAgenda = await prisma.agenda.create({
     data: {
       title: "Futev\xF4lei - Quadra 2",
       description: "Reserva de quadra para Futev\xF4lei",
@@ -112,6 +113,24 @@ async function main() {
           { time: "18:00", isAvailable: true }
         ]
       }
+    }
+  });
+  await prisma.booking.create({
+    data: {
+      userId: admin.id,
+      agendaId: beachTennisAgenda.id
+    }
+  });
+  await prisma.booking.create({
+    data: {
+      userId: admin.id,
+      agendaId: volleyballAgenda.id
+    }
+  });
+  await prisma.booking.create({
+    data: {
+      userId: admin.id,
+      agendaId: footvolleyAgenda.id
     }
   });
   console.log("Seed completed successfully!");
