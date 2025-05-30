@@ -260,24 +260,155 @@ async function arenaRoutes(app2) {
   });
 }
 
+// src/schemas/booking.ts
+var import_zod3 = require("zod");
+var bookingParamsSchema = import_zod3.z.object({
+  id: import_zod3.z.string().uuid()
+});
+var createBookingSchema = import_zod3.z.object({
+  agendaId: import_zod3.z.string().uuid()
+});
+var bookingResponseSchema = import_zod3.z.object({
+  id: import_zod3.z.string().uuid(),
+  userId: import_zod3.z.string().uuid(),
+  agendaId: import_zod3.z.string().uuid(),
+  createdAt: import_zod3.z.date(),
+  updatedAt: import_zod3.z.date(),
+  Agenda: import_zod3.z.object({
+    title: import_zod3.z.string(),
+    description: import_zod3.z.string(),
+    date: import_zod3.z.date(),
+    arena: import_zod3.z.object({
+      name: import_zod3.z.string(),
+      location: import_zod3.z.string()
+    })
+  })
+});
+
+// src/routes/booking.ts
+async function bookingRoutes(app2) {
+  app2.withTypeProvider().post(
+    "/booking",
+    {
+      schema: {
+        body: createBookingSchema,
+        summary: "Create a new booking",
+        tags: ["Booking"]
+      }
+    },
+    async (request, reply) => {
+      try {
+        const userId = await request.getCurrentUserId();
+        const { agendaId } = request.body;
+        const agenda = await prisma.agenda.findUnique({
+          where: { id: agendaId },
+          include: {
+            timeSlots: true
+          }
+        });
+        if (!agenda) {
+          return reply.status(404).send({ error: "Agenda not found" });
+        }
+        const hasAvailableSlots = agenda.timeSlots.some(
+          (slot) => slot.isAvailable
+        );
+        if (!hasAvailableSlots) {
+          return reply.status(400).send({ error: "No available time slots" });
+        }
+        const booking = await prisma.booking.create({
+          data: {
+            userId,
+            agendaId
+          },
+          include: {
+            Agenda: {
+              include: {
+                arena: true
+              }
+            }
+          }
+        });
+        return booking;
+      } catch (error) {
+        return reply.status(401).send({ error: error.message });
+      }
+    }
+  );
+  app2.withTypeProvider().get(
+    "/booking",
+    {
+      schema: {
+        summary: "List all bookings for the current user",
+        tags: ["Booking"]
+      }
+    },
+    async (request, reply) => {
+      try {
+        const userId = await request.getCurrentUserId();
+        const bookings = await prisma.booking.findMany({
+          where: { userId },
+          include: {
+            Agenda: {
+              include: {
+                arena: true
+              }
+            }
+          },
+          orderBy: {
+            createdAt: "desc"
+          }
+        });
+        return bookings;
+      } catch (error) {
+        return reply.status(401).send({ error: error.message });
+      }
+    }
+  );
+  app2.withTypeProvider().delete(
+    "/booking/:id",
+    {
+      schema: {
+        params: bookingParamsSchema,
+        summary: "Delete a booking",
+        tags: ["Booking"]
+      }
+    },
+    async (request, reply) => {
+      try {
+        const userId = await request.getCurrentUserId();
+        const { id } = request.params;
+        await prisma.booking.delete({
+          where: {
+            id,
+            userId
+          }
+        });
+        return { message: "Booking deleted successfully" };
+      } catch (error) {
+        return reply.status(401).send({ error: error.message });
+      }
+    }
+  );
+}
+
 // src/routes/user.ts
 var import_bcryptjs = __toESM(require("bcryptjs"));
 
 // src/schemas/user.ts
-var import_zod3 = require("zod");
-var createUserSchema = import_zod3.z.object({
-  name: import_zod3.z.string().min(3),
-  email: import_zod3.z.string().email(),
-  password: import_zod3.z.string().min(6)
+var import_zod4 = require("zod");
+var createUserSchema = import_zod4.z.object({
+  name: import_zod4.z.string().min(3),
+  email: import_zod4.z.string().email(),
+  password: import_zod4.z.string().min(6)
 });
-var loginSchema = import_zod3.z.object({
-  email: import_zod3.z.string().email(),
-  password: import_zod3.z.string()
+var loginSchema = import_zod4.z.object({
+  email: import_zod4.z.string().email(),
+  password: import_zod4.z.string()
 });
-var updateUserSchema = import_zod3.z.object({
-  name: import_zod3.z.string().min(3).optional(),
-  email: import_zod3.z.string().email().optional(),
-  password: import_zod3.z.string().min(6).optional()
+var updateUserSchema = import_zod4.z.object({
+  name: import_zod4.z.string().min(3).optional(),
+  email: import_zod4.z.string().email().optional(),
+  password: import_zod4.z.string().min(6).optional()
 });
 
 // src/routes/user.ts
@@ -388,6 +519,7 @@ app.register(auth);
 app.register(userRoutes);
 app.register(agendaRoutes);
 app.register(arenaRoutes);
+app.register(bookingRoutes);
 app.get("/health", async () => {
   return { status: "ok" };
 });
