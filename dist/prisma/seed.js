@@ -78,6 +78,9 @@ async function main() {
           { time: "12:00", isAvailable: false }
         ]
       }
+    },
+    include: {
+      timeSlots: true
     }
   });
   const volleyballAgenda = await prisma.agenda.create({
@@ -95,6 +98,9 @@ async function main() {
           { time: "15:00", isAvailable: true }
         ]
       }
+    },
+    include: {
+      timeSlots: true
     }
   });
   const footvolleyAgenda = await prisma.agenda.create({
@@ -113,25 +119,49 @@ async function main() {
           { time: "18:00", isAvailable: true }
         ]
       }
+    },
+    include: {
+      timeSlots: true
     }
   });
   await prisma.booking.create({
     data: {
       userId: admin.id,
-      agendaId: beachTennisAgenda.id
+      agendaId: beachTennisAgenda.id,
+      timeSlots: {
+        connect: [{ id: beachTennisAgenda.timeSlots[0].id }]
+      }
     }
   });
   await prisma.booking.create({
     data: {
       userId: admin.id,
-      agendaId: volleyballAgenda.id
+      agendaId: volleyballAgenda.id,
+      timeSlots: {
+        connect: [{ id: volleyballAgenda.timeSlots[0].id }]
+      }
     }
   });
   await prisma.booking.create({
     data: {
       userId: admin.id,
-      agendaId: footvolleyAgenda.id
+      agendaId: footvolleyAgenda.id,
+      timeSlots: {
+        connect: [{ id: footvolleyAgenda.timeSlots[1].id }]
+      }
     }
+  });
+  await prisma.timeSlot.update({
+    where: { id: beachTennisAgenda.timeSlots[0].id },
+    data: { isAvailable: false }
+  });
+  await prisma.timeSlot.update({
+    where: { id: volleyballAgenda.timeSlots[0].id },
+    data: { isAvailable: false }
+  });
+  await prisma.timeSlot.update({
+    where: { id: footvolleyAgenda.timeSlots[1].id },
+    data: { isAvailable: false }
   });
   console.log("Seed completed successfully!");
 }

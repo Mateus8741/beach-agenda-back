@@ -266,7 +266,8 @@ var bookingParamsSchema = import_zod3.z.object({
   id: import_zod3.z.string().uuid()
 });
 var createBookingSchema = import_zod3.z.object({
-  agendaId: import_zod3.z.string().uuid()
+  agendaId: import_zod3.z.string().uuid(),
+  timeSlotId: import_zod3.z.string().uuid()
 });
 var bookingResponseSchema = import_zod3.z.object({
   id: import_zod3.z.string().uuid(),
@@ -282,7 +283,14 @@ var bookingResponseSchema = import_zod3.z.object({
       name: import_zod3.z.string(),
       location: import_zod3.z.string()
     })
-  })
+  }),
+  timeSlots: import_zod3.z.array(
+    import_zod3.z.object({
+      id: import_zod3.z.string().uuid(),
+      time: import_zod3.z.string(),
+      isAvailable: import_zod3.z.boolean()
+    })
+  )
 });
 
 // src/routes/booking.ts
@@ -299,7 +307,7 @@ async function bookingRoutes(app2) {
     async (request, reply) => {
       try {
         const userId = await request.getCurrentUserId();
-        const { agendaId } = request.body;
+        const { agendaId, timeSlotId } = request.body;
         const agenda = await prisma.agenda.findUnique({
           where: { id: agendaId },
           include: {
@@ -309,24 +317,35 @@ async function bookingRoutes(app2) {
         if (!agenda) {
           return reply.status(404).send({ error: "Agenda not found" });
         }
-        const hasAvailableSlots = agenda.timeSlots.some(
-          (slot) => slot.isAvailable
+        const timeSlot = agenda.timeSlots.find(
+          (slot) => slot.id === timeSlotId
         );
-        if (!hasAvailableSlots) {
-          return reply.status(400).send({ error: "No available time slots" });
+        if (!timeSlot) {
+          return reply.status(404).send({ error: "Time slot not found" });
+        }
+        if (!timeSlot.isAvailable) {
+          return reply.status(400).send({ error: "Time slot is not available" });
         }
         const booking = await prisma.booking.create({
           data: {
             userId,
-            agendaId
+            agendaId,
+            timeSlots: {
+              connect: [{ id: timeSlotId }]
+            }
           },
           include: {
             Agenda: {
               include: {
                 arena: true
               }
-            }
+            },
+            timeSlots: true
           }
+        });
+        await prisma.timeSlot.update({
+          where: { id: timeSlotId },
+          data: { isAvailable: false }
         });
         return booking;
       } catch (error) {
@@ -352,7 +371,8 @@ async function bookingRoutes(app2) {
               include: {
                 arena: true
               }
-            }
+            },
+            timeSlots: true
           },
           orderBy: {
             createdAt: "desc"
@@ -377,6 +397,21 @@ async function bookingRoutes(app2) {
       try {
         const userId = await request.getCurrentUserId();
         const { id } = request.params;
+        const booking = await prisma.booking.findUnique({
+          where: { id },
+          include: { timeSlots: true }
+        });
+        if (!booking) {
+          return reply.status(404).send({ error: "Booking not found" });
+        }
+        await Promise.all(
+          booking.timeSlots.map(
+            (slot) => prisma.timeSlot.update({
+              where: { id: slot.id },
+              data: { isAvailable: true }
+            })
+          )
+        );
         await prisma.booking.delete({
           where: {
             id,

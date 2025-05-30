@@ -30,7 +30,8 @@ var bookingParamsSchema = import_zod.z.object({
   id: import_zod.z.string().uuid()
 });
 var createBookingSchema = import_zod.z.object({
-  agendaId: import_zod.z.string().uuid()
+  agendaId: import_zod.z.string().uuid(),
+  timeSlotId: import_zod.z.string().uuid()
 });
 var bookingResponseSchema = import_zod.z.object({
   id: import_zod.z.string().uuid(),
@@ -46,7 +47,14 @@ var bookingResponseSchema = import_zod.z.object({
       name: import_zod.z.string(),
       location: import_zod.z.string()
     })
-  })
+  }),
+  timeSlots: import_zod.z.array(
+    import_zod.z.object({
+      id: import_zod.z.string().uuid(),
+      time: import_zod.z.string(),
+      isAvailable: import_zod.z.boolean()
+    })
+  )
 });
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

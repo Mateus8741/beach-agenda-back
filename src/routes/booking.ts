@@ -17,7 +17,7 @@ export async function bookingRoutes(app: FastifyInstance) {
 		async (request, reply) => {
 			try {
 				const userId = await request.getCurrentUserId();
-				const { agendaId } = request.body;
+				const { agendaId, timeSlotId } = request.body;
 
 				const agenda = await prisma.agenda.findUnique({
 					where: { id: agendaId },
@@ -30,17 +30,26 @@ export async function bookingRoutes(app: FastifyInstance) {
 					return reply.status(404).send({ error: "Agenda not found" });
 				}
 
-				const hasAvailableSlots = agenda.timeSlots.some(
-					(slot: { isAvailable: boolean }) => slot.isAvailable,
+				const timeSlot = agenda.timeSlots.find(
+					(slot: { id: string }) => slot.id === timeSlotId,
 				);
-				if (!hasAvailableSlots) {
-					return reply.status(400).send({ error: "No available time slots" });
+				if (!timeSlot) {
+					return reply.status(404).send({ error: "Time slot not found" });
+				}
+
+				if (!timeSlot.isAvailable) {
+					return reply
+						.status(400)
+						.send({ error: "Time slot is not available" });
 				}
 
 				const booking = await prisma.booking.create({
 					data: {
 						userId,
 						agendaId,
+						timeSlots: {
+							connect: [{ id: timeSlotId }],
+						},
 					},
 					include: {
 						Agenda: {
@@ -48,7 +57,13 @@ export async function bookingRoutes(app: FastifyInstance) {
 								arena: true,
 							},
 						},
+						timeSlots: true,
 					},
+				});
+
+				await prisma.timeSlot.update({
+					where: { id: timeSlotId },
+					data: { isAvailable: false },
 				});
 
 				return booking;
@@ -78,6 +93,7 @@ export async function bookingRoutes(app: FastifyInstance) {
 								arena: true,
 							},
 						},
+						timeSlots: true,
 					},
 					orderBy: {
 						createdAt: "desc",
@@ -104,6 +120,24 @@ export async function bookingRoutes(app: FastifyInstance) {
 			try {
 				const userId = await request.getCurrentUserId();
 				const { id } = request.params;
+
+				const booking = await prisma.booking.findUnique({
+					where: { id },
+					include: { timeSlots: true },
+				});
+
+				if (!booking) {
+					return reply.status(404).send({ error: "Booking not found" });
+				}
+
+				await Promise.all(
+					booking.timeSlots.map((slot: { id: string }) =>
+						prisma.timeSlot.update({
+							where: { id: slot.id },
+							data: { isAvailable: true },
+						}),
+					),
+				);
 
 				await prisma.booking.delete({
 					where: {
