@@ -6,6 +6,7 @@ export const bookingParamsSchema = z.object({
 
 export const createBookingSchema = z.object({
 	agendaId: z.string().uuid(),
+	timeSlotId: z.string().uuid(),
 });
 
 export const bookingResponseSchema = z.object({
@@ -23,4 +24,11 @@ export const bookingResponseSchema = z.object({
 			location: z.string(),
 		}),
 	}),
+	timeSlots: z.array(
+		z.object({
+			id: z.string().uuid(),
+			time: z.string(),
+			isAvailable: z.boolean(),
+		}),
+	),
 });
